@@ -10,43 +10,122 @@ import UIKit
 
 class HeadlineViewController: UIViewController {
 
+  // Once the view is loaded, calculate the increment value that
+  // the opacity should be changed in order to go from 0->1, or 1->0 based
+  // on the height of self.view
+  var opacityIncrement: CGFloat!
+  
+  // Keep state of the headlineView starting position.
+  // These two variables should be updated in sync.
   var startHeadlineImageViewFrame:CGRect!
+  var startHeadlingTopPosition: Bool = true
+
+  // Keep state of which direction the drag is happening to handle the
+  // following use cases:
+  // 1. If start from the top, and last know drag was up, restore
+  // 2. If start from the bottom, and last known drag was down, restore
+  var lastKnownVelocity:CGPoint = CGPointMake(0, 0)
+  // TODO why init with false ?
+  var draggingDown: Bool = false
 
   @IBOutlet var panGestureRecognizer: UIPanGestureRecognizer
   @IBOutlet var headlineImageView: UIImageView
-  
+
   @IBAction func onPan(sender: UIPanGestureRecognizer) {
-//    NSLog("Panning ...")
-    
-    
-    
-    
+    // NSLog("Panning ...")
+
+    // restore to original position
+    func restoreWithOptions(options: UIViewAnimationOptions) {
+      UIView.animateWithDuration(0.35, delay: 0.0, options: options, animations: {
+        self.headlineImageView.frame = self.startHeadlineImageViewFrame
+        }, completion: { (Bool) -> Void in
+          // NSLog("done")
+          // self.startHeadlineImageViewFrame did not change, so no need to
+          // udpate
+        })
+    }
+
+
     var frame:CGRect = self.headlineImageView.frame
     var newFrame: CGRect!
-    
+
     // Need to move it down (y) as we keep panning
-    
+
 
     let location = sender.locationInView(self.view)
     let translation = sender.translationInView(self.view)
+    let velocity = sender.velocityInView(self.view)
 
-    // let's detect if user is dragging outside of the headlineImageView
+    // NSLog("%@", NSStringFromCGPoint(location))
+    // NSLog("%@", NSStringFromCGPoint(translation))
+
+    // detect if user is dragging outside of the headlineImageView and ignore
     let inView = sender.locationInView(self.headlineImageView)
-    NSLog("inView = %@", NSStringFromCGPoint(inView))
+    // NSLog("inView = %@", NSStringFromCGPoint(inView))
     // Not sure why < 0.0 does not work, seems there is a buffer
     if inView.y < -10.0 {
-      // then we outside the headlineImageView
+      NSLog("User dragging outside of the headlineView")
       return
     }
-    
+
     switch (sender.state) {
     case .Began:
-//      NSLog(".Began")
+      // NSLog(".Began")
       self.startHeadlineImageViewFrame = frame
 
+    case .Changed:
+      // NSLog(".Changed")
+
+      // Track which direction user is dragging
+      if velocity.x * lastKnownVelocity.x + velocity.y * lastKnownVelocity.y > 0.0 {
+        // NSLog("Same direction")
+      } else {
+        // NSLog("Reverse direction")
+        self.draggingDown = !self.draggingDown
+      }
+      lastKnownVelocity = velocity;
+      // if draggingDown {
+      //   NSLog("dragging DOWN")
+      // } else {
+      //   NSLog("dragging UP")
+      // }
+
+      // Move the headlines with the same distance as the finger is dragging
+      newFrame = CGRectMake(frame.origin.x,
+        self.startHeadlineImageViewFrame.origin.y + translation.y,
+        frame.size.width,
+        frame.size.height)
+
+      self.headlineImageView.frame = newFrame;
+      
+      // As the view is being dragged, change the self.view opacity
+      /*
+      if self.draggingDown {
+        self.view.layer.opacity -= self.opacityIncrement;
+      } else {
+        self.view.layer.opacity += self.opacityIncrement;
+      }
+      */
+
     case .Ended:
-//      NSLog(".Ended")
+      // NSLog(".Ended")
+
+      // Depending on the starting position, and the last known dragging
+      // direction, decide if headlineView should be restored ?
+      if self.startHeadlingTopPosition && !self.draggingDown {
+        // NSLog("restore top position")
+        restoreWithOptions(UIViewAnimationOptions.CurveEaseOut)
+        return
+      }
+      if !self.startHeadlingTopPosition && self.draggingDown {
+        // NSLog("restore bottom position")
+        restoreWithOptions(UIViewAnimationOptions.CurveEaseOut)
+        return
+      }
+
+      // How much vertical movement before we start animation
       let y_offset:CGFloat = 20.0
+      // How much gap to leave after the animation complete when dragging down
       let y_visible:CGFloat = 44.0
 
       var y_delta:CGFloat = translation.y
@@ -59,28 +138,18 @@ class HeadlineViewController: UIViewController {
       // First, let's determine if we were dragging up or down
       if (translation.y > 0) {
         // moving down
-
         if y_delta >= y_offset {
           UIView.animateWithDuration(0.35, delay: 0.0, options: options, animations: {
             newFrame = CGRectMake(self.view.frame.origin.x, self.view.frame.size.height - y_visible, self.view.frame.size.width, self.view.frame.size.height)
             self.headlineImageView.frame = newFrame
             }, completion: { (Bool) -> Void in
-              NSLog("done")
-              // the final position should be where we start next
+              // NSLog("done")
               self.startHeadlineImageViewFrame = self.headlineImageView.frame
+              self.startHeadlingTopPosition = false
             })
         } else {
-          UIView.animateWithDuration(0.35, delay: 0.0, options: options, animations: {
-            
-            self.headlineImageView.frame = self.startHeadlineImageViewFrame
-            }, completion: { (Bool) -> Void in
-              NSLog("done")
-              // the final position should be where we start next
-              self.startHeadlineImageViewFrame = self.headlineImageView.frame
-            })
-
+          restoreWithOptions(options)
         }
-        
       } else if translation.y < 0 {
         // moving up
         // User would have to move up a bit more to start the animation up
@@ -89,48 +158,25 @@ class HeadlineViewController: UIViewController {
             newFrame = CGRectMake(self.view.frame.origin.x, 0.0, self.view.frame.size.width, self.view.frame.size.height)
             self.headlineImageView.frame = newFrame
             }, completion: { (Bool) -> Void in
-              NSLog("done")
-              // the final position should be where we start next
+              // NSLog("done")
               self.startHeadlineImageViewFrame = self.headlineImageView.frame
+              self.startHeadlingTopPosition = true
             })
         } else {
-          UIView.animateWithDuration(0.35, delay: 0.0, options: options, animations: {
-            
-            self.headlineImageView.frame = self.startHeadlineImageViewFrame
-            }, completion: { (Bool) -> Void in
-              NSLog("done")
-              // the final position should be where we start next
-              self.startHeadlineImageViewFrame = self.headlineImageView.frame
-            })
+          restoreWithOptions(options)
         }
-
       } else {
         NSLog("NO OP")
-        
       }
 
+    case .Cancelled:
+      NSLog("NO OP - .Cancelled")
 
-
-      
-    case .Changed:
-//      NSLog(".Changed")
-      // Move the headlines with the same distance as the finger is dragging
-      newFrame = CGRectMake(frame.origin.x,
-        self.startHeadlineImageViewFrame.origin.y + translation.y,
-        frame.size.width,
-        frame.size.height)
-      
-      self.headlineImageView.frame = newFrame;
     default:
       NSLog("unhandled state")
     }
-    
 
-    
-//    NSLog("%@", NSStringFromCGPoint(location))
-//    NSLog("%@", NSStringFromCGPoint(translation))
   }
-  
 
   init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: NSBundle?) {
     super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
@@ -142,14 +188,18 @@ class HeadlineViewController: UIViewController {
 
     // Do any additional setup after loading the view.
     self.view.backgroundColor = UIColor.clearColor()
+    // self.view.layer.opacity = 1.0
+    // self.view.backgroundColor = UIColor.blackColor()
     self.view.layer.cornerRadius = 5.0
+    self.headlineImageView.backgroundColor = UIColor.clearColor()
+    
+    self.opacityIncrement = (1.0 / self.view.frame.height)
   }
 
   override func didReceiveMemoryWarning() {
     super.didReceiveMemoryWarning()
     // Dispose of any resources that can be recreated.
   }
-
 
   /*
   // #pragma mark - Navigation
