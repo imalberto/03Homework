@@ -17,8 +17,8 @@ class HeadlineViewController: UIViewController {
   
   // Keep state of the headlineView starting position.
   // These two variables should be updated in sync.
-  var startHeadlineImageViewFrame:CGRect!
-  var startHeadlingTopPosition: Bool = true
+  var startHeadlineImageViewFrame:CGRect! // only top or bottom
+  var startHeadlineTopPosition: Bool = true
 
   // Keep state of which direction the drag is happening to handle the
   // following use cases:
@@ -26,7 +26,7 @@ class HeadlineViewController: UIViewController {
   // 2. If start from the bottom, and last known drag was down, restore
   var lastKnownVelocity:CGPoint = CGPointMake(0, 0)
   // TODO why init with false ?
-  var draggingDown: Bool = false
+  var draggingDown: Bool!
 
   @IBOutlet var panGestureRecognizer: UIPanGestureRecognizer
   @IBOutlet var headlineImageView: UIImageView
@@ -39,9 +39,14 @@ class HeadlineViewController: UIViewController {
       UIView.animateWithDuration(0.35, delay: 0.0, options: options, animations: {
         self.headlineImageView.frame = self.startHeadlineImageViewFrame
         }, completion: { (Bool) -> Void in
-          // NSLog("done")
+          // NSLog("done restoring view")
           // self.startHeadlineImageViewFrame did not change, so no need to
           // udpate
+          if self.startHeadlineTopPosition {
+            // NSLog("Restored to top position")
+          } else {
+            // NSLog("Restored to bottom position")
+          }
         })
     }
 
@@ -71,31 +76,65 @@ class HeadlineViewController: UIViewController {
     switch (sender.state) {
     case .Began:
       // NSLog(".Began")
+
       self.startHeadlineImageViewFrame = frame
+      
+      // figure out which direction we are moving initially
+      NSLog("[begin] translation.y = %f, velocity.y = %f", translation.y, velocity.y)
+      // if translation.y > 0.0 {
+      if velocity.y > 0.0 {
+        self.draggingDown = true
+      } else {
+        self.draggingDown = false
+      }
+      if self.draggingDown == true {
+        NSLog("[begin] dragging DOWN")
+      } else {
+        NSLog("[begin] dragging UP")
+      }
+
+      // Need to store our current velocity so that we can make the correct
+      // decision in .Changed as to which direction we are moving
+      self.lastKnownVelocity = velocity
 
     case .Changed:
       // NSLog(".Changed")
 
       // Track which direction user is dragging
-      if velocity.x * lastKnownVelocity.x + velocity.y * lastKnownVelocity.y > 0.0 {
-        // NSLog("Same direction")
+      if self.startHeadlineTopPosition == true && self.lastKnownVelocity.x == 0 && self.lastKnownVelocity.y == 0 {
+        // keep the current self.draggingDown
       } else {
-        // NSLog("Reverse direction")
-        self.draggingDown = !self.draggingDown
+        if velocity.x * lastKnownVelocity.x + velocity.y * lastKnownVelocity.y > 0.0 {
+          // NSLog("Same direction")
+        } else {
+          // NSLog("Reverse direction")
+          self.draggingDown = !self.draggingDown
+        }
+        lastKnownVelocity = velocity;
       }
-      lastKnownVelocity = velocity;
-      // if draggingDown {
-      //   NSLog("dragging DOWN")
-      // } else {
-      //   NSLog("dragging UP")
-      // }
+      if self.draggingDown == true {
+        NSLog("[changed] dragging DOWN")
+      } else {
+        NSLog("[changed] dragging UP")
+      }
 
-      // Move the headlines with the same distance as the finger is dragging
-      newFrame = CGRectMake(frame.origin.x,
-        self.startHeadlineImageViewFrame.origin.y + translation.y,
-        frame.size.width,
-        frame.size.height)
 
+      // Should the friction be increased ?
+      if (frame.origin.y < 0.0) {
+        // increase friction
+        // newFrame = frame
+        newFrame = CGRectMake(frame.origin.x,
+          (self.startHeadlineImageViewFrame.origin.y + translation.y) / 10.0,
+          frame.size.width,
+          frame.size.height)
+        
+      } else {
+        // Move the headlines with the same distance as the finger is dragging
+        newFrame = CGRectMake(frame.origin.x,
+          self.startHeadlineImageViewFrame.origin.y + translation.y,
+          frame.size.width,
+          frame.size.height)
+      }
       self.headlineImageView.frame = newFrame;
       
       // As the view is being dragged, change the self.view opacity
@@ -112,19 +151,19 @@ class HeadlineViewController: UIViewController {
 
       // Depending on the starting position, and the last known dragging
       // direction, decide if headlineView should be restored ?
-      if self.startHeadlingTopPosition && !self.draggingDown {
+      if self.startHeadlineTopPosition && !self.draggingDown {
         // NSLog("restore top position")
         restoreWithOptions(UIViewAnimationOptions.CurveEaseOut)
         return
       }
-      if !self.startHeadlingTopPosition && self.draggingDown {
+      if !self.startHeadlineTopPosition && self.draggingDown {
         // NSLog("restore bottom position")
         restoreWithOptions(UIViewAnimationOptions.CurveEaseOut)
         return
       }
 
       // How much vertical movement before we start animation
-      let y_offset:CGFloat = 20.0
+      let y_offset:CGFloat = 5.0 // TODO adjust this dependening
       // How much gap to leave after the animation complete when dragging down
       let y_visible:CGFloat = 44.0
 
@@ -140,12 +179,12 @@ class HeadlineViewController: UIViewController {
         // moving down
         if y_delta >= y_offset {
           UIView.animateWithDuration(0.35, delay: 0.0, options: options, animations: {
-            newFrame = CGRectMake(self.view.frame.origin.x, self.view.frame.size.height - y_visible, self.view.frame.size.width, self.view.frame.size.height)
+            newFrame = CGRectMake(frame.origin.x, self.view.frame.size.height - y_visible, frame.size.width, frame.size.height)
             self.headlineImageView.frame = newFrame
             }, completion: { (Bool) -> Void in
               // NSLog("done")
-              self.startHeadlineImageViewFrame = self.headlineImageView.frame
-              self.startHeadlingTopPosition = false
+              self.startHeadlineImageViewFrame = newFrame
+              self.startHeadlineTopPosition = false
             })
         } else {
           restoreWithOptions(options)
@@ -155,12 +194,12 @@ class HeadlineViewController: UIViewController {
         // User would have to move up a bit more to start the animation up
         if y_delta >= (y_offset / 2.0) {
           UIView.animateWithDuration(0.35, delay: 0.0, options: options, animations: {
-            newFrame = CGRectMake(self.view.frame.origin.x, 0.0, self.view.frame.size.width, self.view.frame.size.height)
+            newFrame = CGRectMake(frame.origin.x, 0.0, frame.size.width, frame.size.height)
             self.headlineImageView.frame = newFrame
             }, completion: { (Bool) -> Void in
               // NSLog("done")
-              self.startHeadlineImageViewFrame = self.headlineImageView.frame
-              self.startHeadlingTopPosition = true
+              self.startHeadlineImageViewFrame = newFrame
+              self.startHeadlineTopPosition = true
             })
         } else {
           restoreWithOptions(options)
