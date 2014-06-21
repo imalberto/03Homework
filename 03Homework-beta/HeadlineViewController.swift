@@ -10,28 +10,113 @@ import UIKit
 
 class HeadlineViewController: UIViewController {
 
+  var startHeadlineImageViewFrame:CGRect!
+
   @IBOutlet var panGestureRecognizer: UIPanGestureRecognizer
   @IBOutlet var headlineImageView: UIImageView
   
   @IBAction func onPan(sender: UIPanGestureRecognizer) {
-    NSLog("Panning ...")
+//    NSLog("Panning ...")
     
-    var frame:CGRect = self.headlineImageView.frame;
+    var frame:CGRect = self.headlineImageView.frame
+    var newFrame: CGRect!
     
     // Need to move it down (y) as we keep panning
     
     let location = sender.locationInView(self.view)
     let translation = sender.translationInView(self.view)
     
-    var newFrame = CGRectMake(frame.origin.x,
-                              translation.y,
-                              frame.size.width,
-                              frame.size.height)
     
-    self.headlineImageView.frame = newFrame;
+    switch (sender.state) {
+    case .Began:
+      NSLog(".Began")
+      self.startHeadlineImageViewFrame = frame
+
+    case .Ended:
+      NSLog(".Ended")
+      let y_offset:CGFloat = 20.0
+      let y_visible:CGFloat = 40.0
+
+      var y_delta:CGFloat = translation.y
+      // var options:UIViewAnimationOptions = UIViewAnimationOptions.fromRaw(animCurve.toRaw().asUnsigned())!
+      var options:UIViewAnimationOptions = UIViewAnimationOptions.CurveEaseOut
+
+      if y_delta < 0 {
+        y_delta *= -1
+      }
+      // First, let's determine if we were dragging up or down
+      if (translation.y > 0) {
+        // moving down
+
+        if y_delta >= y_offset {
+          UIView.animateWithDuration(0.35, delay: 0.0, options: options, animations: {
+            newFrame = CGRectMake(self.view.frame.origin.x, self.view.frame.size.height - y_visible, self.view.frame.size.width, self.view.frame.size.height)
+            self.headlineImageView.frame = newFrame
+            }, completion: { (Bool) -> Void in
+              NSLog("done")
+              // the final position should be where we start next
+              self.startHeadlineImageViewFrame = self.headlineImageView.frame
+            })
+        } else {
+          UIView.animateWithDuration(0.35, delay: 0.0, options: options, animations: {
+            
+            self.headlineImageView.frame = self.startHeadlineImageViewFrame
+            }, completion: { (Bool) -> Void in
+              NSLog("done")
+              // the final position should be where we start next
+              self.startHeadlineImageViewFrame = self.headlineImageView.frame
+            })
+
+        }
+        
+      } else if translation.y < 0 {
+        // moving up
+        // User would have to move up a bit more to start the animation up
+        if y_delta >= y_offset * 1.5 {
+          UIView.animateWithDuration(0.35, delay: 0.0, options: options, animations: {
+            newFrame = CGRectMake(self.view.frame.origin.x, 0.0, self.view.frame.size.width, self.view.frame.size.height)
+            self.headlineImageView.frame = newFrame
+            }, completion: { (Bool) -> Void in
+              NSLog("done")
+              // the final position should be where we start next
+              self.startHeadlineImageViewFrame = self.headlineImageView.frame
+            })
+        } else {
+          UIView.animateWithDuration(0.35, delay: 0.0, options: options, animations: {
+            
+            self.headlineImageView.frame = self.startHeadlineImageViewFrame
+            }, completion: { (Bool) -> Void in
+              NSLog("done")
+              // the final position should be where we start next
+              self.startHeadlineImageViewFrame = self.headlineImageView.frame
+            })
+        }
+
+      } else {
+        NSLog("NO OP")
+        
+      }
+
+
+
+      
+    case .Changed:
+      NSLog(".Changed")
+      // Move the headlines with the same distance as the finger is dragging
+      newFrame = CGRectMake(frame.origin.x,
+        self.startHeadlineImageViewFrame.origin.y + translation.y,
+        frame.size.width,
+        frame.size.height)
+      
+      self.headlineImageView.frame = newFrame;
+    default:
+      NSLog("unhandled state")
+    }
     
-    NSLog("%@", NSStringFromCGPoint(location))
-    NSLog("%@", NSStringFromCGPoint(translation))
+
+    
+//    NSLog("%@", NSStringFromCGPoint(location))
+//    NSLog("%@", NSStringFromCGPoint(translation))
   }
   
 
@@ -45,6 +130,7 @@ class HeadlineViewController: UIViewController {
 
     // Do any additional setup after loading the view.
     self.view.backgroundColor = UIColor.clearColor()
+    self.view.layer.cornerRadius = 5.0
   }
 
   override func didReceiveMemoryWarning() {
