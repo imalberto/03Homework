@@ -18,24 +18,36 @@ class HeadlineViewController: UIViewController {
   @IBAction func onPan(sender: UIPanGestureRecognizer) {
 //    NSLog("Panning ...")
     
+    
+    
+    
     var frame:CGRect = self.headlineImageView.frame
     var newFrame: CGRect!
     
     // Need to move it down (y) as we keep panning
     
+
     let location = sender.locationInView(self.view)
     let translation = sender.translationInView(self.view)
-    
+
+    // let's detect if user is dragging outside of the headlineImageView
+    let inView = sender.locationInView(self.headlineImageView)
+    NSLog("inView = %@", NSStringFromCGPoint(inView))
+    // Not sure why < 0.0 does not work, seems there is a buffer
+    if inView.y < -10.0 {
+      // then we outside the headlineImageView
+      return
+    }
     
     switch (sender.state) {
     case .Began:
-      NSLog(".Began")
+//      NSLog(".Began")
       self.startHeadlineImageViewFrame = frame
 
     case .Ended:
-      NSLog(".Ended")
+//      NSLog(".Ended")
       let y_offset:CGFloat = 20.0
-      let y_visible:CGFloat = 40.0
+      let y_visible:CGFloat = 44.0
 
       var y_delta:CGFloat = translation.y
       // var options:UIViewAnimationOptions = UIViewAnimationOptions.fromRaw(animCurve.toRaw().asUnsigned())!
@@ -72,7 +84,7 @@ class HeadlineViewController: UIViewController {
       } else if translation.y < 0 {
         // moving up
         // User would have to move up a bit more to start the animation up
-        if y_delta >= y_offset * 1.5 {
+        if y_delta >= (y_offset / 2.0) {
           UIView.animateWithDuration(0.35, delay: 0.0, options: options, animations: {
             newFrame = CGRectMake(self.view.frame.origin.x, 0.0, self.view.frame.size.width, self.view.frame.size.height)
             self.headlineImageView.frame = newFrame
@@ -101,7 +113,7 @@ class HeadlineViewController: UIViewController {
 
       
     case .Changed:
-      NSLog(".Changed")
+//      NSLog(".Changed")
       // Move the headlines with the same distance as the finger is dragging
       newFrame = CGRectMake(frame.origin.x,
         self.startHeadlineImageViewFrame.origin.y + translation.y,
