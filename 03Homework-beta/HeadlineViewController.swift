@@ -69,7 +69,7 @@ class HeadlineViewController: UIViewController {
     // NSLog("inView = %@", NSStringFromCGPoint(inView))
     // Not sure why < 0.0 does not work, seems there is a buffer
     if inView.y < -10.0 {
-      NSLog("User dragging outside of the headlineView")
+      // NSLog("User dragging outside of the headlineView")
       return
     }
 
@@ -88,9 +88,9 @@ class HeadlineViewController: UIViewController {
         self.draggingDown = false
       }
       if self.draggingDown == true {
-        NSLog("[begin] dragging DOWN")
+        // NSLog("[begin] dragging DOWN")
       } else {
-        NSLog("[begin] dragging UP")
+        // NSLog("[begin] dragging UP")
       }
 
       // Need to store our current velocity so that we can make the correct
