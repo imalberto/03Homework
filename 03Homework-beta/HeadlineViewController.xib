@@ -8,6 +8,7 @@
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="HeadlineViewController" customModule="_3Homework_beta" customModuleProvider="target">
             <connections>
+                <outlet property="containerView" destination="EjE-0U-qfs" id="q9R-XQ-7ie"/>
                 <outlet property="headlineImageView" destination="we8-z1-WRL" id="IQc-5y-ouX"/>
                 <outlet property="newsFeedScrollView" destination="1V3-pg-0Gv" id="0MI-c1-GIY"/>
                 <outlet property="panGestureRecognizer" destination="Rkf-e3-qZE" id="MWY-RD-JWU"/>
@@ -19,14 +20,21 @@
             <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
-                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="headline" id="we8-z1-WRL">
+                <view contentMode="scaleToFill" id="EjE-0U-qfs">
                     <rect key="frame" x="4" y="0.0" width="312" height="568"/>
-                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                </imageView>
-                <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="1V3-pg-0Gv">
-                    <rect key="frame" x="4" y="316" width="312" height="253"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                </scrollView>
+                    <subviews>
+                        <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="headline" id="we8-z1-WRL">
+                            <rect key="frame" x="0.0" y="0.0" width="312" height="568"/>
+                            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        </imageView>
+                        <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" alwaysBounceHorizontal="YES" showsVerticalScrollIndicator="NO" id="1V3-pg-0Gv">
+                            <rect key="frame" x="0.0" y="314" width="312" height="253.5"/>
+                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        </scrollView>
+                    </subviews>
+                    <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                </view>
             </subviews>
             <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
             <gestureRecognizers/>

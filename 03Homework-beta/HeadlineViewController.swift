@@ -21,7 +21,7 @@ class HeadlineViewController: UIViewController {
   
   // Keep state of the headlineView starting position.
   // These two variables should be updated in sync.
-  var startHeadlineImageViewFrame:CGRect! // only top or bottom
+  var startContainerViewFrame:CGRect! // only top or bottom
   var startHeadlineTopPosition: Bool = true
 
   // Keep state of which direction the drag is happening to handle the
@@ -35,6 +35,7 @@ class HeadlineViewController: UIViewController {
   @IBOutlet var panGestureRecognizer: UIPanGestureRecognizer
   @IBOutlet var headlineImageView: UIImageView
   @IBOutlet var newsFeedScrollView: UIScrollView
+  @IBOutlet var containerView: UIView
 
   // Trigger the fade in event on touch
   @IBAction func onTap(sender: UITapGestureRecognizer) {
@@ -58,10 +59,10 @@ class HeadlineViewController: UIViewController {
     // restore to original position
     func restoreWithOptions(options: UIViewAnimationOptions) {
       UIView.animateWithDuration(0.35, delay: 0.0, options: options, animations: {
-        self.headlineImageView.frame = self.startHeadlineImageViewFrame
+        self.containerView.frame = self.startContainerViewFrame
         }, completion: { (Bool) -> Void in
           // NSLog("done restoring view")
-          // self.startHeadlineImageViewFrame did not change, so no need to
+          // self.startContainerViewFrame did not change, so no need to
           // udpate
           if self.startHeadlineTopPosition {
             // NSLog("Restored to top position")
@@ -72,7 +73,7 @@ class HeadlineViewController: UIViewController {
     }
 
 
-    var frame:CGRect = self.headlineImageView.frame
+    var frame:CGRect = self.containerView.frame
     var newFrame: CGRect!
 
     // Need to move it down (y) as we keep panning
@@ -86,7 +87,7 @@ class HeadlineViewController: UIViewController {
     // NSLog("%@", NSStringFromCGPoint(translation))
 
     // detect if user is dragging outside of the headlineImageView and ignore
-    let inView = sender.locationInView(self.headlineImageView)
+    let inView = sender.locationInView(self.containerView)
     // NSLog("inView = %@", NSStringFromCGPoint(inView))
     // Not sure why < 0.0 does not work, seems there is a buffer
     if inView.y < -10.0 {
@@ -98,7 +99,7 @@ class HeadlineViewController: UIViewController {
     case .Began:
       // NSLog(".Began")
 
-      self.startHeadlineImageViewFrame = frame
+      self.startContainerViewFrame = frame
       
       // figure out which direction we are moving initially
       NSLog("[begin] translation.y = %f, velocity.y = %f", translation.y, velocity.y)
@@ -145,18 +146,19 @@ class HeadlineViewController: UIViewController {
         // increase friction
         // newFrame = frame
         newFrame = CGRectMake(frame.origin.x,
-          (self.startHeadlineImageViewFrame.origin.y + translation.y) / 10.0,
+          // (self.startHeadlineImageViewFrame.origin.y + translation.y) / 10.0,
+          (self.startContainerViewFrame.origin.y + translation.y) / 10.0,
           frame.size.width,
           frame.size.height)
         
       } else {
         // Move the headlines with the same distance as the finger is dragging
         newFrame = CGRectMake(frame.origin.x,
-          self.startHeadlineImageViewFrame.origin.y + translation.y,
+          self.startContainerViewFrame.origin.y + translation.y,
           frame.size.width,
           frame.size.height)
       }
-      self.headlineImageView.frame = newFrame;
+      self.containerView.frame = newFrame
       
       // As the view is being dragged, change the self.view opacity
       /*
@@ -201,10 +203,10 @@ class HeadlineViewController: UIViewController {
         if y_delta >= y_offset {
           UIView.animateWithDuration(0.35, delay: 0.0, options: options, animations: {
             newFrame = CGRectMake(frame.origin.x, self.view.frame.size.height - y_visible, frame.size.width, frame.size.height)
-            self.headlineImageView.frame = newFrame
+            self.containerView.frame = newFrame
             }, completion: { (Bool) -> Void in
               // NSLog("done")
-              self.startHeadlineImageViewFrame = newFrame
+              self.startContainerViewFrame = newFrame
               self.startHeadlineTopPosition = false
             })
         } else {
@@ -216,10 +218,10 @@ class HeadlineViewController: UIViewController {
         if y_delta >= (y_offset / 2.0) {
           UIView.animateWithDuration(0.35, delay: 0.0, options: options, animations: {
             newFrame = CGRectMake(frame.origin.x, 0.0, frame.size.width, frame.size.height)
-            self.headlineImageView.frame = newFrame
+            self.containerView.frame = newFrame
             }, completion: { (Bool) -> Void in
               // NSLog("done")
-              self.startHeadlineImageViewFrame = newFrame
+              self.startContainerViewFrame = newFrame
               self.startHeadlineTopPosition = true
             })
         } else {
@@ -251,18 +253,25 @@ class HeadlineViewController: UIViewController {
     // self.view.layer.opacity = 1.0
     // self.view.backgroundColor = UIColor.blackColor()
     self.view.layer.cornerRadius = 5.0
-    self.headlineImageView.backgroundColor = UIColor.clearColor()
+    self.containerView.backgroundColor = UIColor.clearColor()
 
     // Compute the amount that opacity of the background should change
     // as the headlineView is dragged
     self.opacityIncrement = (1.0 / self.view.frame.height)
     
     // add the newsfeed image view to the scrollview
-    newsFeedScrollView.backgroundColor = UIColor.redColor()
+    self.newsFeedScrollView.scrollsToTop = false
+    self.newsFeedScrollView.backgroundColor = UIColor.clearColor()
+    self.newsFeedScrollView.directionalLockEnabled = true
+    self.newsFeedScrollView.alwaysBounceVertical = false
+
     let imageView: UIImageView = UIImageView(frame: CGRectZero)
     imageView.image = UIImage(named: "news")
     imageView.sizeThatFits(imageView.image.size)
+    imageView.frame = CGRectMake(0, 0, imageView.image.size.width, imageView.image.size.height)
     NSLog("Image size: %@", NSStringFromCGSize(imageView.image.size))
+    NSLog("Image frame: %@", NSStringFromCGRect(imageView.frame))
+    
     self.newsFeedScrollView.addSubview(imageView)
     self.newsFeedScrollView.contentSize = imageView.image.size
     
