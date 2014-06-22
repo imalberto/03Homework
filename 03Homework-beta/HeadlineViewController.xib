@@ -9,6 +9,7 @@
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="HeadlineViewController" customModule="_3Homework_beta" customModuleProvider="target">
             <connections>
                 <outlet property="headlineImageView" destination="we8-z1-WRL" id="IQc-5y-ouX"/>
+                <outlet property="newsFeedScrollView" destination="1V3-pg-0Gv" id="0MI-c1-GIY"/>
                 <outlet property="panGestureRecognizer" destination="Rkf-e3-qZE" id="MWY-RD-JWU"/>
                 <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
             </connections>
@@ -22,6 +23,10 @@
                     <rect key="frame" x="4" y="0.0" width="312" height="568"/>
                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                 </imageView>
+                <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="1V3-pg-0Gv">
+                    <rect key="frame" x="4" y="316" width="312" height="253"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                </scrollView>
             </subviews>
             <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
             <gestureRecognizers/>
@@ -42,6 +47,7 @@
                 <action selector="onTap:" destination="-1" id="92N-iW-hS9"/>
             </connections>
         </tapGestureRecognizer>
+        <tapGestureRecognizer id="3Tz-3D-R6v"/>
     </objects>
     <resources>
         <image name="headline" width="320" height="568"/>

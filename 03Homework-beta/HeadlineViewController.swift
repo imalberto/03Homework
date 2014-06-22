@@ -34,6 +34,7 @@ class HeadlineViewController: UIViewController {
 
   @IBOutlet var panGestureRecognizer: UIPanGestureRecognizer
   @IBOutlet var headlineImageView: UIImageView
+  @IBOutlet var newsFeedScrollView: UIScrollView
 
   // Trigger the fade in event on touch
   @IBAction func onTap(sender: UITapGestureRecognizer) {
@@ -251,8 +252,20 @@ class HeadlineViewController: UIViewController {
     // self.view.backgroundColor = UIColor.blackColor()
     self.view.layer.cornerRadius = 5.0
     self.headlineImageView.backgroundColor = UIColor.clearColor()
-    
+
+    // Compute the amount that opacity of the background should change
+    // as the headlineView is dragged
     self.opacityIncrement = (1.0 / self.view.frame.height)
+    
+    // add the newsfeed image view to the scrollview
+    newsFeedScrollView.backgroundColor = UIColor.redColor()
+    let imageView: UIImageView = UIImageView(frame: CGRectZero)
+    imageView.image = UIImage(named: "news")
+    imageView.sizeThatFits(imageView.image.size)
+    NSLog("Image size: %@", NSStringFromCGSize(imageView.image.size))
+    self.newsFeedScrollView.addSubview(imageView)
+    self.newsFeedScrollView.contentSize = imageView.image.size
+    
   }
 
   override func didReceiveMemoryWarning() {
