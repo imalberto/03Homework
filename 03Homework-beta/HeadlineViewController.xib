@@ -29,6 +29,7 @@
             <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina4"/>
             <connections>
                 <outletCollection property="gestureRecognizers" destination="Rkf-e3-qZE" appends="YES" id="nxY-CQ-acF"/>
+                <outletCollection property="gestureRecognizers" destination="xQv-xX-mQC" appends="YES" id="B2H-Fa-T5C"/>
             </connections>
         </view>
         <panGestureRecognizer minimumNumberOfTouches="1" id="Rkf-e3-qZE">
@@ -36,6 +37,11 @@
                 <action selector="onPan:" destination="-1" id="jeC-7u-tKF"/>
             </connections>
         </panGestureRecognizer>
+        <tapGestureRecognizer numberOfTapsRequired="2" id="xQv-xX-mQC">
+            <connections>
+                <action selector="onTap:" destination="-1" id="92N-iW-hS9"/>
+            </connections>
+        </tapGestureRecognizer>
     </objects>
     <resources>
         <image name="headline" width="320" height="568"/>

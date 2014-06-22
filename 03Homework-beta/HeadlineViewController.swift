@@ -10,6 +10,10 @@ import UIKit
 
 class HeadlineViewController: UIViewController {
 
+  var images:String[] = ["headline", "headlines_card"]
+  var imageIndex: Int = 0
+  var timer: NSTimer! = nil
+
   // Once the view is loaded, calculate the increment value that
   // the opacity should be changed in order to go from 0->1, or 1->0 based
   // on the height of self.view
@@ -30,6 +34,22 @@ class HeadlineViewController: UIViewController {
 
   @IBOutlet var panGestureRecognizer: UIPanGestureRecognizer
   @IBOutlet var headlineImageView: UIImageView
+
+  // Trigger the fade in event on touch
+  @IBAction func onTap(sender: UITapGestureRecognizer) {
+    // NSLog("onTap")
+    
+    if self.timer == nil {
+      timer = NSTimer.scheduledTimerWithTimeInterval(2.0, target: self, selector: "updateHeadlines", userInfo: nil, repeats: true)
+      NSLog("timer started")
+    } else {
+      timer.invalidate()
+      timer = nil
+      NSLog("timer stopped")
+    }
+    // self.imageIndex = (self.imageIndex + 1) % 2
+    // self.updateHeadlines()
+  }
 
   @IBAction func onPan(sender: UIPanGestureRecognizer) {
     // NSLog("Panning ...")
@@ -249,5 +269,17 @@ class HeadlineViewController: UIViewController {
     // Pass the selected object to the new view controller.
   }
   */
+  
+  func updateHeadlines() {
+
+    self.imageIndex = (self.imageIndex + 1) % 2
+    let toImage = UIImage(named:self.images[self.imageIndex])
+
+    UIView.transitionWithView(self.headlineImageView, duration: 0.7, options: .TransitionCrossDissolve, animations: {
+          self.headlineImageView.image = toImage
+        }, completion: { (Bool) -> Void in
+          NSLog("transition done")
+        })
+  }
 
 }
