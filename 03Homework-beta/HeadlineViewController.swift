@@ -191,6 +191,8 @@ class HeadlineViewController: UIViewController {
       let y_visible:CGFloat = 44.0
 
       var y_delta:CGFloat = translation.y
+      // NOTE: use velocity.y instead of translation.y
+      // var y_delta:CGFloat = velocity.y
       // var options:UIViewAnimationOptions = UIViewAnimationOptions.fromRaw(animCurve.toRaw().asUnsigned())!
       var options:UIViewAnimationOptions = UIViewAnimationOptions.CurveEaseOut
 
@@ -198,7 +200,8 @@ class HeadlineViewController: UIViewController {
         y_delta *= -1
       }
       // First, let's determine if we were dragging up or down
-      if (translation.y > 0) {
+      // if (translation.y > 0) {
+      if (velocity.y > 0) {
         // moving down
         if y_delta >= y_offset {
           UIView.animateWithDuration(0.35, delay: 0.0, options: options, animations: {
