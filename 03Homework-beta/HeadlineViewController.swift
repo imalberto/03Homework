@@ -10,7 +10,7 @@ import UIKit
 
 class HeadlineViewController: UIViewController {
 
-  var images:String[] = ["headline10", "headline"]
+  var images:String[] = ["headline10", "headline11"]
   var imageIndex: Int = 0
   var timer: NSTimer! = nil
   var invView:UIView!
@@ -37,6 +37,7 @@ class HeadlineViewController: UIViewController {
   @IBOutlet var headlineImageView: UIImageView
   @IBOutlet var newsFeedScrollView: UIScrollView
   @IBOutlet var containerView: UIView
+  @IBOutlet var newsFeedImageView: UIImageView
 
   // Trigger the fade in event on touch
   @IBAction func onTap(sender: UITapGestureRecognizer) {
@@ -281,15 +282,14 @@ class HeadlineViewController: UIViewController {
     self.newsFeedScrollView.directionalLockEnabled = true
     self.newsFeedScrollView.alwaysBounceVertical = false
 
-    let imageView: UIImageView = UIImageView(frame: CGRectZero)
-    imageView.image = UIImage(named: "news")
-    imageView.sizeThatFits(imageView.image.size)
-    imageView.frame = CGRectMake(0, 0, imageView.image.size.width, imageView.image.size.height)
-    // NSLog("Image size: %@", NSStringFromCGSize(imageView.image.size))
-    // NSLog("Image frame: %@", NSStringFromCGRect(imageView.frame))
+    self.newsFeedImageView.image = UIImage(named: "news")
+    self.newsFeedImageView.sizeThatFits(self.newsFeedImageView.image.size)
+    self.newsFeedImageView.frame = CGRectMake(0, 0, self.newsFeedImageView.image.size.width, self.newsFeedImageView.image.size.height)
+    // NSLog("Image size: %@", NSStringFromCGSize(self.newsFeedImageView.image.size))
+    // NSLog("Image frame: %@", NSStringFromCGRect(self.newsFeedImageView.frame))
     
-    self.newsFeedScrollView.addSubview(imageView)
-    self.newsFeedScrollView.contentSize = imageView.image.size
+    self.newsFeedScrollView.addSubview(self.newsFeedImageView)
+    self.newsFeedScrollView.contentSize = self.newsFeedImageView.image.size
     
   }
 
