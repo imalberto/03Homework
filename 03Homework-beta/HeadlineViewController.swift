@@ -10,9 +10,10 @@ import UIKit
 
 class HeadlineViewController: UIViewController {
 
-  var images:String[] = ["headline", "headlines_card"]
+  var images:String[] = ["headline10", "headline"]
   var imageIndex: Int = 0
   var timer: NSTimer! = nil
+  var invView:UIView!
 
   // Once the view is loaded, calculate the increment value that
   // the opacity should be changed in order to go from 0->1, or 1->0 based
@@ -83,7 +84,7 @@ class HeadlineViewController: UIViewController {
     let translation = sender.translationInView(self.view)
     let velocity = sender.velocityInView(self.view)
 
-    // NSLog("%@", NSStringFromCGPoint(location))
+    // NSLog("location = %@", NSStringFromCGPoint(location)) // where the touch is
     // NSLog("%@", NSStringFromCGPoint(translation))
 
     // detect if user is dragging outside of the headlineImageView and ignore
@@ -159,6 +160,10 @@ class HeadlineViewController: UIViewController {
           frame.size.height)
       }
       self.containerView.frame = newFrame
+
+      // Update invView
+      let incOpacity: CGFloat = 1.0 / 400.0
+      self.invView.layer.opacity = 1.0 - (frame.origin.y * incOpacity)
       
       // As the view is being dragged, change the self.view opacity
       /*
@@ -253,10 +258,18 @@ class HeadlineViewController: UIViewController {
 
     // Do any additional setup after loading the view.
     self.view.backgroundColor = UIColor.clearColor()
-    // self.view.layer.opacity = 1.0
-    // self.view.backgroundColor = UIColor.blackColor()
-    self.view.layer.cornerRadius = 5.0
+
     self.containerView.backgroundColor = UIColor.clearColor()
+    self.headlineImageView.backgroundColor = UIColor.clearColor()
+    self.headlineImageView.layer.cornerRadius = 5.0
+    self.headlineImageView.layer.masksToBounds = true
+    
+    // Add a view behind the container view that changes alpa
+    self.invView = UIView(frame: self.view.bounds)
+    self.invView.backgroundColor = UIColor.blackColor()
+    self.invView.layer.opacity = 1.0
+    self.view.insertSubview(self.invView, belowSubview: self.containerView)
+    
 
     // Compute the amount that opacity of the background should change
     // as the headlineView is dragged
@@ -272,8 +285,8 @@ class HeadlineViewController: UIViewController {
     imageView.image = UIImage(named: "news")
     imageView.sizeThatFits(imageView.image.size)
     imageView.frame = CGRectMake(0, 0, imageView.image.size.width, imageView.image.size.height)
-    NSLog("Image size: %@", NSStringFromCGSize(imageView.image.size))
-    NSLog("Image frame: %@", NSStringFromCGRect(imageView.frame))
+    // NSLog("Image size: %@", NSStringFromCGSize(imageView.image.size))
+    // NSLog("Image frame: %@", NSStringFromCGRect(imageView.frame))
     
     self.newsFeedScrollView.addSubview(imageView)
     self.newsFeedScrollView.contentSize = imageView.image.size
