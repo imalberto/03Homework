@@ -33,9 +33,13 @@
                             <rect key="frame" x="0.0" y="314" width="312" height="253.5"/>
                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             <subviews>
-                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" id="VLP-df-cNS">
+                                <imageView contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" id="VLP-df-cNS">
                                     <rect key="frame" x="0.0" y="0.0" width="312" height="253.5"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                    <gestureRecognizers/>
+                                    <connections>
+                                        <outletCollection property="gestureRecognizers" destination="iwj-iN-Pfe" appends="YES" id="Qex-OJ-fei"/>
+                                    </connections>
                                 </imageView>
                             </subviews>
                         </scrollView>
@@ -63,6 +67,11 @@
             </connections>
         </tapGestureRecognizer>
         <tapGestureRecognizer id="3Tz-3D-R6v"/>
+        <panGestureRecognizer minimumNumberOfTouches="1" id="iwj-iN-Pfe">
+            <connections>
+                <action selector="onPanNewsFeed:" destination="-1" id="AS1-Pr-bAP"/>
+            </connections>
+        </panGestureRecognizer>
     </objects>
     <resources>
         <image name="headline10" width="310" height="568"/>

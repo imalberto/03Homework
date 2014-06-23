@@ -39,7 +39,7 @@ class HeadlineViewController: UIViewController {
   @IBOutlet var containerView: UIView
   @IBOutlet var newsFeedImageView: UIImageView
 
-  // Trigger the fade in event on touch
+  // Tap recognizer on the HeadlineImageView
   @IBAction func onTap(sender: UITapGestureRecognizer) {
     // NSLog("onTap")
     
@@ -55,22 +55,26 @@ class HeadlineViewController: UIViewController {
     // self.updateHeadlines()
   }
 
+  // Pan recognizer on the HeadlineImageView
   @IBAction func onPan(sender: UIPanGestureRecognizer) {
     // NSLog("Panning ...")
 
     // restore to original position
     func restoreWithOptions(options: UIViewAnimationOptions) {
       UIView.animateWithDuration(0.35, delay: 0.0, options: options, animations: {
-        self.containerView.frame = self.startContainerViewFrame
+          self.containerView.frame = self.startContainerViewFrame
         }, completion: { (Bool) -> Void in
           // NSLog("done restoring view")
           // self.startContainerViewFrame did not change, so no need to
           // udpate
           if self.startHeadlineTopPosition {
             // NSLog("Restored to top position")
+            self.invView.layer.opacity = 1.0
           } else {
             // NSLog("Restored to bottom position")
+            self.invView.layer.opacity = 0.0
           }
+
         })
     }
 
@@ -163,8 +167,15 @@ class HeadlineViewController: UIViewController {
       self.containerView.frame = newFrame
 
       // Update invView
-      let incOpacity: CGFloat = 1.0 / 400.0
-      self.invView.layer.opacity = 1.0 - (frame.origin.y * incOpacity)
+      // remember, the metrics are in points, not pixels !
+      let incOpacity: Float = 1.0 / 100.0
+      // frame.origin.y * incOpacity
+      if self.startHeadlineTopPosition == true {
+        self.invView.layer.opacity -= incOpacity
+      } else {
+        self.invView.layer.opacity += incOpacity
+      }
+      NSLog("invView.layer.opacity = %f", self.invView.layer.opacity)
       
       // As the view is being dragged, change the self.view opacity
       /*
@@ -192,11 +203,11 @@ class HeadlineViewController: UIViewController {
       }
 
       // How much vertical movement before we start animation
-      let y_offset:CGFloat = 5.0 // TODO adjust this dependening
+      let y_offset:Float = 5.0 // TODO adjust this dependening
       // How much gap to leave after the animation complete when dragging down
-      let y_visible:CGFloat = 44.0
+      let y_visible:Float = 54.0
 
-      var y_delta:CGFloat = translation.y
+      var y_delta:Float = translation.y
       // NOTE: use velocity.y instead of translation.y
       // var y_delta:CGFloat = velocity.y
       // var options:UIViewAnimationOptions = UIViewAnimationOptions.fromRaw(animCurve.toRaw().asUnsigned())!
@@ -211,8 +222,12 @@ class HeadlineViewController: UIViewController {
         // moving down
         if y_delta >= y_offset {
           UIView.animateWithDuration(0.35, delay: 0.0, options: options, animations: {
-            newFrame = CGRectMake(frame.origin.x, self.view.frame.size.height - y_visible, frame.size.width, frame.size.height)
-            self.containerView.frame = newFrame
+              newFrame = CGRectMake(frame.origin.x,
+                                self.view.frame.size.height - y_visible,
+                                frame.size.width,
+                                frame.size.height)
+              self.containerView.frame = newFrame
+              self.invView.layer.opacity = 0.0
             }, completion: { (Bool) -> Void in
               // NSLog("done")
               self.startContainerViewFrame = newFrame
@@ -221,13 +236,14 @@ class HeadlineViewController: UIViewController {
         } else {
           restoreWithOptions(options)
         }
-      } else if translation.y < 0 {
+      } else if velocity.y < 0 {
         // moving up
         // User would have to move up a bit more to start the animation up
         if y_delta >= (y_offset / 2.0) {
           UIView.animateWithDuration(0.35, delay: 0.0, options: options, animations: {
-            newFrame = CGRectMake(frame.origin.x, 0.0, frame.size.width, frame.size.height)
-            self.containerView.frame = newFrame
+              newFrame = CGRectMake(frame.origin.x, 0.0, frame.size.width, frame.size.height)
+              self.containerView.frame = newFrame
+              self.invView.layer.opacity = 1.0
             }, completion: { (Bool) -> Void in
               // NSLog("done")
               self.startContainerViewFrame = newFrame
@@ -248,6 +264,16 @@ class HeadlineViewController: UIViewController {
     }
 
   }
+
+  // Pan recognizer on the NewsFeedImageView
+  @IBAction func onPanNewsFeed(sender: UIPanGestureRecognizer) {
+    NSLog("pan newsfeed")
+  }
+
+
+
+
+
 
   init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: NSBundle?) {
     super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
