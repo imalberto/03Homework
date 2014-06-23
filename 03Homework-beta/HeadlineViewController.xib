@@ -11,6 +11,7 @@
                 <outlet property="containerView" destination="EjE-0U-qfs" id="q9R-XQ-7ie"/>
                 <outlet property="headlineImageView" destination="we8-z1-WRL" id="IQc-5y-ouX"/>
                 <outlet property="newsFeedImageView" destination="VLP-df-cNS" id="FOF-Rr-u5s"/>
+                <outlet property="newsFeedPanGestureRecognizer" destination="iwj-iN-Pfe" id="P4q-M2-S8F"/>
                 <outlet property="newsFeedScrollView" destination="1V3-pg-0Gv" id="0MI-c1-GIY"/>
                 <outlet property="panGestureRecognizer" destination="Rkf-e3-qZE" id="MWY-RD-JWU"/>
                 <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>

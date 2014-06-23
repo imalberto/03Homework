@@ -8,8 +8,10 @@
 
 import UIKit
 
-class HeadlineViewController: UIViewController {
+class HeadlineViewController: UIViewController, UIGestureRecognizerDelegate {
 
+  var originalTransform: CGAffineTransform!
+  
   var images:String[] = ["headline10", "headline11"]
   var imageIndex: Int = 0
   var timer: NSTimer! = nil
@@ -38,6 +40,7 @@ class HeadlineViewController: UIViewController {
   @IBOutlet var newsFeedScrollView: UIScrollView
   @IBOutlet var containerView: UIView
   @IBOutlet var newsFeedImageView: UIImageView
+  @IBOutlet var newsFeedPanGestureRecognizer: UIPanGestureRecognizer
 
   // Tap recognizer on the HeadlineImageView
   @IBAction func onTap(sender: UITapGestureRecognizer) {
@@ -267,12 +270,55 @@ class HeadlineViewController: UIViewController {
 
   // Pan recognizer on the NewsFeedImageView
   @IBAction func onPanNewsFeed(sender: UIPanGestureRecognizer) {
-    NSLog("pan newsfeed")
+    
+    let translation = sender.translationInView(self.newsFeedImageView)
+    let velocity = sender.velocityInView(self.newsFeedImageView)
+    var baseScale = 1.0
+    var transform: CGAffineTransform!
+    var scale:Float = 1.0
+    var scalex: Float!
+    var scaley: Float!
+
+    if abs(translation.y) >  abs(translation.x) {
+      switch (sender.state) {
+      // case .Ended:
+      case .Began:
+        self.originalTransform = self.newsFeedScrollView.transform
+        scale = self.originalTransform.tx
+        NSLog("[begin] scale = %f", scale)
+      case .Changed:
+
+        NSLog("pan newsfeed")
+        
+        scalex = self.newsFeedImageView.transform.tx
+        scaley = self.newsFeedImageView.transform.ty
+        // NSLog("scalex = %f, scaley = %f", scalex, scaley)
+
+        NSLog("translation = %@", NSStringFromCGPoint(translation))
+        NSLog("velocity = %@", NSStringFromCGPoint(velocity))
+
+        if velocity.y > 0.0 {
+          if scale > 1.0 {
+            // reduce
+            NSLog("PRE scale = %f", scale)
+            scale = scale - abs(translation.y) / 160.0
+            NSLog("POST scale = %f", scale)
+          }
+        } else {
+          if scale >= 1.0 {
+            // increase
+            scale = 1.0 + abs(translation.y) / 160.0
+            // transform = CGAffineTransformMakeScale(1.1, 1.1)
+          }
+        }
+        NSLog("scale = %f", scale)
+        // transform = CGAffineTransformScale(self.originalTransform, scale, scale)
+        // self.newsFeedScrollView.transform = transform
+      default:
+        NSLog("unknown state")
+      }
+    }
   }
-
-
-
-
 
 
   init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: NSBundle?) {
@@ -308,6 +354,7 @@ class HeadlineViewController: UIViewController {
     self.newsFeedScrollView.directionalLockEnabled = true
     self.newsFeedScrollView.alwaysBounceVertical = false
 
+    self.newsFeedPanGestureRecognizer.delegate = self
     self.newsFeedImageView.image = UIImage(named: "news")
     self.newsFeedImageView.sizeThatFits(self.newsFeedImageView.image.size)
     self.newsFeedImageView.frame = CGRectMake(0, 0, self.newsFeedImageView.image.size.width, self.newsFeedImageView.image.size.height)
@@ -345,5 +392,36 @@ class HeadlineViewController: UIViewController {
           NSLog("transition done")
         })
   }
+  
+  // @optional func gestureRecognizer(gestureRecognizer: UIGestureRecognizer!, shouldRecognizeSimultaneouslyWithGestureRecognizer otherGestureRecognizer: UIGestureRecognizer!) -> Bool
+  func gestureRecognizer(gestureRecognizer: UIGestureRecognizer!, shouldRecognizeSimultaneouslyWithGestureRecognizer otherGestureRecognizer: UIGestureRecognizer!) -> Bool {
+    var result = false
+    let re: UIPanGestureRecognizer = gestureRecognizer as UIPanGestureRecognizer
+    let trans = re.translationInView(self.newsFeedImageView)
+    // Only recoginize both gestures when moving "horizontal"
+    // Filter for only "vertical" movement in ur gestureRecognizer
+    if abs(trans.x) >  abs(trans.y) {
+      result = true
+    }
+    // result == true ? NSLog("recog") : NSLog("no recog")
+    return result
+    
+  }
+  // @optional func gestureRecognizer(gestureRecognizer: UIGestureRecognizer!, shouldRequireFailureOfGestureRecognizer otherGestureRecognizer: UIGestureRecognizer!) -> Bool
+  /*
+  func gestureRecognizer(gestureRecognizer: UIGestureRecognizer!, shouldRequireFailureOfGestureRecognizer otherGestureRecognizer: UIGestureRecognizer!) -> Bool {
+    var result = false
+    let re: UIPanGestureRecognizer = gestureRecognizer as UIPanGestureRecognizer
+    let trans = re.translationInView(self.newsFeedImageView)
+    if abs(trans.x) >  abs(trans.y) {
+      result = true
+      NSLog("should fail")
+    } else {
+      result = false
+      NSLog("should not fail")
+    }
+    return result
+  }
+  */
 
 }
