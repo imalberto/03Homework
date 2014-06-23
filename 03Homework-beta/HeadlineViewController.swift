@@ -60,77 +60,56 @@ class HeadlineViewController: UIViewController, UIGestureRecognizerDelegate {
 
   // Pan recognizer on the HeadlineImageView
   @IBAction func onPan(sender: UIPanGestureRecognizer) {
-    // NSLog("Panning ...")
-
-    // restore to original position
-    func restoreWithOptions(options: UIViewAnimationOptions) {
-      UIView.animateWithDuration(0.35, delay: 0.0, options: options, animations: {
-          self.containerView.frame = self.startContainerViewFrame
-        }, completion: { (Bool) -> Void in
-          // NSLog("done restoring view")
-          // self.startContainerViewFrame did not change, so no need to
-          // udpate
-          if self.startHeadlineTopPosition {
-            // NSLog("Restored to top position")
-            self.invView.layer.opacity = 1.0
-          } else {
-            // NSLog("Restored to bottom position")
-            self.invView.layer.opacity = 0.0
-          }
-
-        })
-    }
-
 
     var frame:CGRect = self.containerView.frame
     var newFrame: CGRect!
 
-    // Need to move it down (y) as we keep panning
+    // Restore to original position
+    func restoreWithOptions(options: UIViewAnimationOptions) {
+      UIView.animateWithDuration(0.35, delay: 0.0, options: options, animations: {
+            self.containerView.frame = self.startContainerViewFrame
+        }, completion: { (Bool) -> Void in
+            if self.startHeadlineTopPosition {
+              self.invView.layer.opacity = 1.0
+            } else {
+              self.invView.layer.opacity = 0.0
+            }
+        })
+    }
 
 
-    let location = sender.locationInView(self.view)
-    let translation = sender.translationInView(self.view)
-    let velocity = sender.velocityInView(self.view)
 
-    // NSLog("location = %@", NSStringFromCGPoint(location)) // where the touch is
-    // NSLog("%@", NSStringFromCGPoint(translation))
+    let location = sender.locationInView(self.containerView)
+    let translation = sender.translationInView(self.containerView)
+    let velocity = sender.velocityInView(self.containerView)
+
 
     // detect if user is dragging outside of the headlineImageView and ignore
     let inView = sender.locationInView(self.containerView)
+
+    // NSLog("location = %@", NSStringFromCGPoint(location)) // where the touch is
+    // NSLog("%@", NSStringFromCGPoint(translation))
     // NSLog("inView = %@", NSStringFromCGPoint(inView))
-    // Not sure why < 0.0 does not work, seems there is a buffer
-    if inView.y < -10.0 {
-      // NSLog("User dragging outside of the headlineView")
-      return
-    }
 
     switch (sender.state) {
     case .Began:
-      // NSLog(".Began")
-
       self.startContainerViewFrame = frame
-      
-      // figure out which direction we are moving initially
-      NSLog("[begin] translation.y = %f, velocity.y = %f", translation.y, velocity.y)
-      // if translation.y > 0.0 {
+
+      // NSLog("[begin] translation.y = %f, velocity.y = %f", translation.y, velocity.y)
+      self.draggingDown = false
       if velocity.y > 0.0 {
         self.draggingDown = true
-      } else {
-        self.draggingDown = false
       }
-      if self.draggingDown == true {
-        // NSLog("[begin] dragging DOWN")
-      } else {
-        // NSLog("[begin] dragging UP")
-      }
-
-      // Need to store our current velocity so that we can make the correct
-      // decision in .Changed as to which direction we are moving
+      // self.draggingDown == true ? NSLog("[begin] dragging DOWN") : NSLog("[begin] dragging UP")
+      
+      // Store current velocity to decide if user changed the panning direction
+      // in .Changed
       self.lastKnownVelocity = velocity
 
     case .Changed:
-      // NSLog(".Changed")
 
+      NSLog("[changed] velocity = %@", NSStringFromCGPoint(velocity))
+      
       // Track which direction user is dragging
       if self.startHeadlineTopPosition == true && self.lastKnownVelocity.x == 0 && self.lastKnownVelocity.y == 0 {
         // keep the current self.draggingDown
@@ -143,19 +122,12 @@ class HeadlineViewController: UIViewController, UIGestureRecognizerDelegate {
         }
         lastKnownVelocity = velocity;
       }
-      if self.draggingDown == true {
-        NSLog("[changed] dragging DOWN")
-      } else {
-        NSLog("[changed] dragging UP")
-      }
+      
+      // self.draggingDown == true ? NSLog("[begin] dragging DOWN") : NSLog("[begin] dragging UP")
 
-
-      // Should the friction be increased ?
+      // Increase drag force if necessary
       if (frame.origin.y < 0.0) {
-        // increase friction
-        // newFrame = frame
         newFrame = CGRectMake(frame.origin.x,
-          // (self.startHeadlineImageViewFrame.origin.y + translation.y) / 10.0,
           (self.startContainerViewFrame.origin.y + translation.y) / 10.0,
           frame.size.width,
           frame.size.height)
@@ -169,28 +141,22 @@ class HeadlineViewController: UIViewController, UIGestureRecognizerDelegate {
       }
       self.containerView.frame = newFrame
 
-      // Update invView
-      // remember, the metrics are in points, not pixels !
-      let incOpacity: Float = 1.0 / 100.0
-      // frame.origin.y * incOpacity
-      if self.startHeadlineTopPosition == true {
-        self.invView.layer.opacity -= incOpacity
-      } else {
-        self.invView.layer.opacity += incOpacity
-      }
-      NSLog("invView.layer.opacity = %f", self.invView.layer.opacity)
-      
-      // As the view is being dragged, change the self.view opacity
-      /*
-      if self.draggingDown {
-        self.view.layer.opacity -= self.opacityIncrement;
-      } else {
-        self.view.layer.opacity += self.opacityIncrement;
-      }
-      */
+      // Animate alpha as user is dragging (in points)
+      let incOpacity: Float = 1.0 / 60.0
 
+      // TODO more sophistication is required here
+      if velocity.y > 0 {
+        if (self.invView.layer.opacity - incOpacity) > 0.0 {
+          self.invView.layer.opacity -= incOpacity
+        }
+      } else {
+        if (self.invView.layer.opacity + incOpacity) < 1.0 {
+          self.invView.layer.opacity += incOpacity
+        }
+      }
+      // NSLog("invView.layer.opacity = %f", self.invView.layer.opacity)
+      
     case .Ended:
-      // NSLog(".Ended")
 
       // Depending on the starting position, and the last known dragging
       // direction, decide if headlineView should be restored ?
@@ -206,21 +172,16 @@ class HeadlineViewController: UIViewController, UIGestureRecognizerDelegate {
       }
 
       // How much vertical movement before we start animation
-      let y_offset:Float = 5.0 // TODO adjust this dependening
+      let y_offset:CGFloat = 3.0
       // How much gap to leave after the animation complete when dragging down
-      let y_visible:Float = 54.0
-
-      var y_delta:Float = translation.y
-      // NOTE: use velocity.y instead of translation.y
-      // var y_delta:CGFloat = velocity.y
-      // var options:UIViewAnimationOptions = UIViewAnimationOptions.fromRaw(animCurve.toRaw().asUnsigned())!
+      let y_visible:CGFloat = 54.0
+      var y_delta:CGFloat = velocity.y
       var options:UIViewAnimationOptions = UIViewAnimationOptions.CurveEaseOut
 
       if y_delta < 0 {
         y_delta *= -1
       }
       // First, let's determine if we were dragging up or down
-      // if (translation.y > 0) {
       if (velocity.y > 0) {
         // moving down
         if y_delta >= y_offset {
@@ -260,10 +221,10 @@ class HeadlineViewController: UIViewController, UIGestureRecognizerDelegate {
       }
 
     case .Cancelled:
-      NSLog("NO OP - .Cancelled")
+      NSLog("[cancelled] nothing to do")
 
     default:
-      NSLog("unhandled state")
+      NSLog("unhandled state - nothing to do")
     }
 
   }
@@ -275,9 +236,9 @@ class HeadlineViewController: UIViewController, UIGestureRecognizerDelegate {
     let velocity = sender.velocityInView(self.newsFeedImageView)
     var baseScale = 1.0
     var transform: CGAffineTransform!
-    var scale:Float = 1.0
-    var scalex: Float!
-    var scaley: Float!
+    var scale:CGFloat = 1.0
+    var scalex: CGFloat!
+    var scaley: CGFloat!
 
     if abs(translation.y) >  abs(translation.x) {
       switch (sender.state) {
@@ -315,7 +276,7 @@ class HeadlineViewController: UIViewController, UIGestureRecognizerDelegate {
         // transform = CGAffineTransformScale(self.originalTransform, scale, scale)
         // self.newsFeedScrollView.transform = transform
       default:
-        NSLog("unknown state")
+        NSLog("unknown state - nothing to do")
       }
     }
   }
@@ -387,9 +348,9 @@ class HeadlineViewController: UIViewController, UIGestureRecognizerDelegate {
     let toImage = UIImage(named:self.images[self.imageIndex])
 
     UIView.transitionWithView(self.headlineImageView, duration: 0.7, options: .TransitionCrossDissolve, animations: {
-          self.headlineImageView.image = toImage
+            self.headlineImageView.image = toImage
         }, completion: { (Bool) -> Void in
-          NSLog("transition done")
+            // NSLog("transition done")
         })
   }
   
@@ -408,20 +369,6 @@ class HeadlineViewController: UIViewController, UIGestureRecognizerDelegate {
     
   }
   // @optional func gestureRecognizer(gestureRecognizer: UIGestureRecognizer!, shouldRequireFailureOfGestureRecognizer otherGestureRecognizer: UIGestureRecognizer!) -> Bool
-  /*
-  func gestureRecognizer(gestureRecognizer: UIGestureRecognizer!, shouldRequireFailureOfGestureRecognizer otherGestureRecognizer: UIGestureRecognizer!) -> Bool {
-    var result = false
-    let re: UIPanGestureRecognizer = gestureRecognizer as UIPanGestureRecognizer
-    let trans = re.translationInView(self.newsFeedImageView)
-    if abs(trans.x) >  abs(trans.y) {
-      result = true
-      NSLog("should fail")
-    } else {
-      result = false
-      NSLog("should not fail")
-    }
-    return result
-  }
-  */
+
 
 }
