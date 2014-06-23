@@ -221,10 +221,10 @@ class HeadlineViewController: UIViewController, UIGestureRecognizerDelegate {
       }
 
     case .Cancelled:
-      NSLog("[cancelled] nothing to do")
+      let xx = 1.0
 
     default:
-      NSLog("unhandled state - nothing to do")
+      let xx = 1.0
     }
 
   }
@@ -249,14 +249,14 @@ class HeadlineViewController: UIViewController, UIGestureRecognizerDelegate {
         NSLog("[begin] scale = %f", scale)
       case .Changed:
 
-        NSLog("pan newsfeed")
+        // NSLog("pan newsfeed")
         
         scalex = self.newsFeedImageView.transform.tx
         scaley = self.newsFeedImageView.transform.ty
         // NSLog("scalex = %f, scaley = %f", scalex, scaley)
 
-        NSLog("translation = %@", NSStringFromCGPoint(translation))
-        NSLog("velocity = %@", NSStringFromCGPoint(velocity))
+        // NSLog("translation = %@", NSStringFromCGPoint(translation))
+        // NSLog("velocity = %@", NSStringFromCGPoint(velocity))
 
         if velocity.y > 0.0 {
           if scale > 1.0 {
@@ -276,7 +276,7 @@ class HeadlineViewController: UIViewController, UIGestureRecognizerDelegate {
         // transform = CGAffineTransformScale(self.originalTransform, scale, scale)
         // self.newsFeedScrollView.transform = transform
       default:
-        NSLog("unknown state - nothing to do")
+        NSLog("-")
       }
     }
   }
